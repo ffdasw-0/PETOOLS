@@ -55,17 +55,7 @@ void PrintBoundImportTable(LPVOID pFileBuffer);
 void InjectImportTable(LPVOID pFileBuffer, char* SectionName, char* FunctionName, char* dllName);
 void ResourceTablePrint(LPVOID pFileBuffer);
 void ResourceTablePrintDFS(LPVOID pFileBuffer, DWORD OFFSET, DWORD lay, DWORD Base);
-struct Proc {
-	TCHAR Name[260];
-	DWORD PID;
-	DWORD IMAGE_BASE;
-	DWORD IMAGE_SIZE;
-};
-struct Module {
-	TCHAR Name[20];
-	DWORD IMAGE_BASE;
-	DWORD IMAGE_SIZE;
-};
+
 void ShowAllProc(HWND hWndProc);
 void ShowAllModules(HWND hWndModule, DWORD PID);
 void OpenFileButton();
@@ -75,11 +65,12 @@ BOOL CALLBACK Dlgproc_About(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK Dlgproc_FileHeader(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK Dlgproc_OptionalHeader(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK Dlgproc_Sections(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK Dlgproc_DataDirectory(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 void InitListControlMain(HWND hWnd);
 void ShowDosHeader(HWND hWndPE);
 void InitListControlSection(HWND hWnd);
 void ShowAllSection(HWND hWndSection);
 void ShowFileHeader(HWND hWndFH);
 void ShowOptionalHeader(HWND hWndOH);
-
+void ShowDataDirectory(HWND hWndDD);
 #endif

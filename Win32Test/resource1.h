@@ -8,7 +8,6 @@
 #define IDD_DIALOG_FILEHEADER           107
 #define IDD_DIALOG_OPTIONALHEADER       108
 #define IDD_DIALOG_SECTIONS             109
-#define IDD_DIALOG1                     113
 #define IDD_DIALOG_DATADIR              113
 #define IDC_BUTTON_QUIT                 1001
 #define IDC_BUTTON_OPEN                 1002
@@ -46,36 +45,70 @@
 #define EDIT_PA                         1033
 #define EDIT_OI2                        1034
 #define EDIT_SIZEOFCODE                 1034
+#define EDIT_EXPORTTABLE_SIZE           1034
 #define EDIT_TO                         1035
 #define EDIT_SIZEOFINITDATA             1035
+#define EDIT_IMPORTTABLE_RVA            1035
 #define EDIT_RS                         1036
 #define EDIT_SIZEOFUNINITDATA           1036
+#define EDIT_IMPORTTABLE_SIZE           1036
 #define BUTTON_SECTION                  1037
 #define EDIT_SYMBOLPOINT                1037
 #define EDIT_OEP                        1037
+#define EDIT_RESOURCETABLE_RVA          1037
 #define BUTTON_OPTIONAL_HEADER          1038
 #define EDIT_SYMBOLNUM                  1038
 #define EDIT_CODEBASE                   1038
+#define EDIT_RESOURCETABLE_SIZE         1038
 #define EDIT_FILEALIGNMENT              1039
+#define BUTTON_DATADIR                  1039
+#define EDIT_EXTABLE_RVA                1039
 #define BUTTON_FILE_HEADER              1040
 #define EDIT_SECTIONALIGNMENT           1040
+#define EDIT_EXTABLE_SIZE               1040
 #define IDC_BUTTON1                     1041
 #define EDIT_DATABASE                   1041
+#define EDIT_SETABLE_RVA                1041
 #define EDIT_IMAGEBASE                  1042
+#define EDIT_SETABLE_SIZE               1042
 #define IDC_LIST_SECTIONS               1043
 #define EDIT_WIN32VERSION               1043
 #define EDIT_MACHINE                    1044
 #define EDIT_SIZEIMAGE                  1044
 #define EDIT_TIMEDATE_FILEHEADER        1045
 #define EDIT_SIZEHEADER                 1045
+#define EDIT_BRTABLE_RVA                1045
 #define EDIT_CHECKSUM_OPTIONALHEADER    1046
+#define EDIT_BRTABLE_SIZE               1046
 #define EDIT_STACKR                     1047
+#define EDIT_DEBUGTABLE_RVA             1047
 #define EDIT_STACKC                     1048
+#define EDIT_DEBUGTABLE_SIZE            1048
 #define EDIT_HEAPR                      1049
+#define EDIT_ASTABLE_RVA                1049
 #define EDIT_HEAPC                      1050
+#define EDIT_ASTABLE_SIZE               1050
 #define EDIT_LOADERFLAGS                1051
+#define EDIT_GPRVA_RVA                  1051
 #define EDIT_RVANUMBER                  1052
+#define EDIT_GPRVA_SIZE                 1052
 #define EDIT_MAGICNUM_OPTIONALHEADER    1053
+#define EDIT_TLSTABLE_RVA               1053
+#define EDIT_TLSTABLE_SIZE              1054
+#define EDIT_LCTABLE_RVA                1055
+#define EDIT_LCTABLE_SIZE               1056
+#define EDIT_BOUNDIMPORTTABLE_RVA       1057
+#define EDIT_BOUNDIMPORTTABLE_SIZE      1058
+#define EDIT_IATTABLE_RVA               1059
+#define EDIT_IATTABLE_SIZE              1060
+#define EDIT_DELAYIMPORTTABLE_RVA       1061
+#define EDIT_DELAYIMPORTTABLE_SIZE      1062
+#define EDIT_COMTABLE_RVA               1063
+#define EDIT_COMTABLE_SIZE              1064
+#define EDIT_RESERVED_RVA               1065
+#define EDIT_RESERVERD_SIZE             1066
+#define EDIT_RESERVED_SIZE              1066
+#define EDIT_EXPORTTABLE_RVA            1067
 
 // Next default values for new objects
 // 
@@ -83,7 +116,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        115
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1054
+#define _APS_NEXT_CONTROL_VALUE         1068
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -12,19 +12,6 @@ LPVOID FileBuffer;
 
 extern HINSTANCE hAppInstance;
 
-
-
-
-bool operator<(const Proc& ProcCurrent1,const Proc& ProcCurrent2) {
-	return ProcCurrent1.PID < ProcCurrent2.PID;
-}
-bool operator>(const Proc& ProcCurrent1, const Proc& ProcCurrent2) {
-	return ProcCurrent1.PID > ProcCurrent2.PID;
-}
-bool operator==(const Proc& ProcCurrent1, const Proc& ProcCurrent2) {
-	return ProcCurrent1.PID == ProcCurrent2.PID;
-}
-
 void __cdecl OutputDebugStringF(const char* format, ...) {
 	va_list vlArgs;
 	char* strBuffer = (char*)GlobalAlloc(GPTR, 4096);
@@ -875,6 +862,10 @@ BOOL CALLBACK Dlgproc_PE(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
 			DialogBox(hAppInstance, MAKEINTRESOURCE(IDD_DIALOG_SECTIONS), hWnd, Dlgproc_Sections);
 			break;
 		}
+		case BUTTON_DATADIR: {
+			DialogBox(hAppInstance, MAKEINTRESOURCE(IDD_DIALOG_DATADIR), hWnd, Dlgproc_DataDirectory);
+			break;
+		}
 		}
 		break;
 	}
@@ -1016,6 +1007,31 @@ BOOL CALLBACK Dlgproc_Sections(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
 		switch (LOWORD(wParam)) {
 		case WM_DESTROY: {
 			EndDialog(hWnd, IDCANCEL);
+			break;
+		}
+		}
+		break;
+	}
+	default: {
+		return FALSE;
+	}
+	}
+	return TRUE;
+}
+BOOL CALLBACK Dlgproc_DataDirectory(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
+
+	switch (Msg) {
+	case WM_INITDIALOG: {
+		ShowDataDirectory(hWnd);
+		break;
+	}
+
+	case WM_COMMAND: {
+		switch (LOWORD(wParam)) {
+		case WM_DESTROY: {
+			//DestroyWindow(hWnd);
+			EndDialog(hWnd, IDCANCEL);
+			DbgwPrintf(L"部分进程结束:\n");
 			break;
 		}
 		}
@@ -1243,4 +1259,89 @@ void ShowOptionalHeader(HWND hWndOH) {
 
 	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.NumberOfRvaAndSizes);
 	SetDlgItemText(hWndOH, EDIT_RVANUMBER, str);
+}
+void ShowDataDirectory(HWND hWndDD) {
+	TCHAR str[20] = {};
+	_IMAGE_DOS_HEADER* DOS_HEADER = (_IMAGE_DOS_HEADER*)FileBuffer;
+	_IMAGE_NT_HEADERS* NT_HEADERS = (_IMAGE_NT_HEADERS*)((DWORD)FileBuffer + DOS_HEADER->e_lfanew);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[0].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_EXPORTTABLE_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[0].Size);
+	SetDlgItemText(hWndDD, EDIT_EXPORTTABLE_SIZE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[1].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_IMPORTTABLE_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[1].Size);
+	SetDlgItemText(hWndDD, EDIT_IMPORTTABLE_SIZE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[2].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_RESOURCETABLE_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[2].Size);
+	SetDlgItemText(hWndDD, EDIT_RESOURCETABLE_SIZE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[3].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_EXTABLE_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[3].Size);
+	SetDlgItemText(hWndDD, EDIT_EXTABLE_SIZE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[4].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_SETABLE_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[4].Size);
+	SetDlgItemText(hWndDD, EDIT_SETABLE_SIZE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[5].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_BRTABLE_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[5].Size);
+	SetDlgItemText(hWndDD, EDIT_BRTABLE_SIZE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[6].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_DEBUGTABLE_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[6].Size);
+	SetDlgItemText(hWndDD, EDIT_DEBUGTABLE_SIZE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[7].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_ASTABLE_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[7].Size);
+	SetDlgItemText(hWndDD, EDIT_ASTABLE_SIZE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[8].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_GPRVA_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[8].Size);
+	SetDlgItemText(hWndDD, EDIT_GPRVA_SIZE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[9].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_TLSTABLE_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[9].Size);
+	SetDlgItemText(hWndDD, EDIT_TLSTABLE_SIZE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[10].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_LCTABLE_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[10].Size);
+	SetDlgItemText(hWndDD, EDIT_LCTABLE_SIZE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[11].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_BOUNDIMPORTTABLE_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[11].Size);
+	SetDlgItemText(hWndDD, EDIT_BOUNDIMPORTTABLE_SIZE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[12].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_IATTABLE_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[12].Size);
+	SetDlgItemText(hWndDD, EDIT_IATTABLE_SIZE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[13].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_DELAYIMPORTTABLE_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[13].Size);
+	SetDlgItemText(hWndDD, EDIT_DELAYIMPORTTABLE_SIZE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[14].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_COMTABLE_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[14].Size);
+	SetDlgItemText(hWndDD, EDIT_COMTABLE_SIZE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[14].VirtualAddress);
+	SetDlgItemText(hWndDD, EDIT_RESERVED_RVA, str);
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[14].Size);
+	SetDlgItemText(hWndDD, EDIT_RESERVED_SIZE, str);
 }
