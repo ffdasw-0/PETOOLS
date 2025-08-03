@@ -66,11 +66,21 @@ BOOL CALLBACK Dlgproc_FileHeader(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lPar
 BOOL CALLBACK Dlgproc_OptionalHeader(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK Dlgproc_Sections(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK Dlgproc_DataDirectory(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK Dlgproc_ImportEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK Dlgproc_ExportEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK Dlgproc_ResourceEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK Dlgproc_BoundEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK Dlgproc_RelocEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK Dlgproc_IATEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 void InitListControlMain(HWND hWnd);
 void ShowDosHeader(HWND hWndPE);
 void InitListControlSection(HWND hWnd);
 void ShowAllSection(HWND hWndSection);
 void ShowFileHeader(HWND hWndFH);
+void ShowExportTable(HWND hWndET);
 void ShowOptionalHeader(HWND hWndOH);
 void ShowDataDirectory(HWND hWndDD);
+void InitListControlExportTable(HWND hWnd);
+void ShowAllExport(HWND hWndET);
+
 #endif

@@ -7,6 +7,7 @@
 HWND PROCHWND;
 HWND MODULEHWND;
 HWND SECTIONHWND;
+HWND EXPORTHWND;
 TCHAR szFile[MAX_PATH];
 LPVOID FileBuffer;
 
@@ -1025,13 +1026,159 @@ BOOL CALLBACK Dlgproc_DataDirectory(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM l
 		ShowDataDirectory(hWnd);
 		break;
 	}
-
 	case WM_COMMAND: {
 		switch (LOWORD(wParam)) {
 		case WM_DESTROY: {
 			//DestroyWindow(hWnd);
 			EndDialog(hWnd, IDCANCEL);
 			DbgwPrintf(L"部分进程结束:\n");
+			break;
+		}
+		case BUTTON_EXPORTTABLE_EX: {
+			DialogBox(hAppInstance, MAKEINTRESOURCE(IDD_DIALOG_EXPORT_EX), hWnd, Dlgproc_ExportEx);
+			break;
+		}
+		case BUTTON_IMPORTTABLE_EX: {
+			DialogBox(hAppInstance, MAKEINTRESOURCE(IDD_DIALOG_IMPORT_EX), hWnd, Dlgproc_ImportEx);
+			break;
+		}
+		case BUTTON_RESOURCETABLE_EX: {
+			DialogBox(hAppInstance, MAKEINTRESOURCE(IDD_DIALOG_RESOURCE_EX), hWnd, Dlgproc_ResourceEx);
+			break;
+		}
+		case BUTTON_RELOC_EX: {
+			DialogBox(hAppInstance, MAKEINTRESOURCE(IDD_DIALOG_RELOC_EX), hWnd, Dlgproc_RelocEx);
+			break;
+		}
+		case BUTTON_BOUNDIMPORT_EX: {
+			DialogBox(hAppInstance, MAKEINTRESOURCE(IDD_DIALOG_BOUND_EX), hWnd, Dlgproc_BoundEx);
+			break;
+		}
+		case BUTTON_IAT_EX: {
+			DialogBox(hAppInstance, MAKEINTRESOURCE(IDD_DIALOG_IAT_EX), hWnd, Dlgproc_IATEx);
+			break;
+		}
+		}
+		break;
+	}
+	default: {
+		return FALSE;
+	}
+	}
+	return TRUE;
+}
+BOOL CALLBACK Dlgproc_ImportEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
+	switch (Msg) {
+	case WM_INITDIALOG: {
+		break;
+	}
+	case WM_COMMAND: {
+		switch (LOWORD(wParam)) {
+		case WM_DESTROY: {
+			EndDialog(hWnd, IDCANCEL);
+			break;
+		}
+		}
+		break;
+	}
+	default: {
+		return FALSE;
+	}
+	}
+	return TRUE;
+}
+BOOL CALLBACK Dlgproc_ExportEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
+	switch (Msg) {
+	case WM_INITDIALOG: {
+		InitListControlExportTable(hWnd);
+		ShowExportTable(hWnd);
+		ShowAllExport(EXPORTHWND);
+		break;
+	}
+	case WM_COMMAND: {
+		switch (LOWORD(wParam)) {
+		case WM_DESTROY: {
+			EndDialog(hWnd, IDCANCEL);
+			break;
+		}
+		}
+		break;
+	}
+	default: {
+		return FALSE;
+	}
+	}
+	return TRUE;
+}
+BOOL CALLBACK Dlgproc_ResourceEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
+	switch (Msg) {
+	case WM_INITDIALOG: {
+		break;
+	}
+	case WM_COMMAND: {
+		switch (LOWORD(wParam)) {
+		case WM_DESTROY: {
+			EndDialog(hWnd, IDCANCEL);
+			break;
+		}
+		}
+		break;
+	}
+	default: {
+		return FALSE;
+	}
+	}
+	return TRUE;
+}
+BOOL CALLBACK Dlgproc_BoundEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
+	switch (Msg) {
+	case WM_INITDIALOG: {
+		break;
+	}
+	case WM_COMMAND: {
+		switch (LOWORD(wParam)) {
+		case WM_DESTROY: {
+			EndDialog(hWnd, IDCANCEL);
+			break;
+		}
+		}
+		break;
+	}
+	default: {
+		return FALSE;
+	}
+	}
+	return TRUE;
+}
+BOOL CALLBACK Dlgproc_RelocEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
+	switch (Msg) {
+	case WM_INITDIALOG: {
+		break;
+	}
+	case WM_COMMAND: {
+		switch (LOWORD(wParam)) {
+		case WM_DESTROY: {
+			EndDialog(hWnd, IDCANCEL);
+			break;
+		}
+		}
+		break;
+	}
+	default: {
+		return FALSE;
+	}
+	}
+	return TRUE;
+}
+BOOL CALLBACK Dlgproc_IATEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
+	switch (Msg) {
+	case WM_INITDIALOG: {
+		break;
+	}
+	case WM_COMMAND: {
+		switch (LOWORD(wParam)) {
+		case WM_DESTROY: {
+			EndDialog(hWnd, IDCANCEL);
 			break;
 		}
 		}
@@ -1344,4 +1491,123 @@ void ShowDataDirectory(HWND hWndDD) {
 	SetDlgItemText(hWndDD, EDIT_RESERVED_RVA, str);
 	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.DataDirectory[14].Size);
 	SetDlgItemText(hWndDD, EDIT_RESERVED_SIZE, str);
+}
+void ShowExportTable(HWND hWndET) {
+	int cnt = 0;
+	char name[20] = ".dll";
+	TCHAR str[20] = {};
+	_IMAGE_DOS_HEADER* DOS_HEADER = (_IMAGE_DOS_HEADER*)FileBuffer;
+	_IMAGE_NT_HEADERS* NT_HEADERS = (_IMAGE_NT_HEADERS*)((DWORD)FileBuffer + DOS_HEADER->e_lfanew);
+	_IMAGE_EXPORT_DIRECTORY* ExportTable = (_IMAGE_EXPORT_DIRECTORY*)((DWORD)FileBuffer + RVATOFOA(FileBuffer,NT_HEADERS->OptionalHeader.DataDirectory[0].VirtualAddress));
+	wsprintf(str, L"%08X", ExportTable->Characteristics);
+	SetDlgItemText(hWndET, EDIT_CHARACTER_EXPORT, str);
+
+	wsprintf(str, L"%08X", ExportTable->TimeDateStamp);
+	SetDlgItemText(hWndET, EDIT_TIMEDATE_EXPORT, str);
+
+	wsprintf(str, L"%04X", ExportTable->MajorVersion);
+	SetDlgItemText(hWndET, EDIT_MAJORVERSION_EXPORT, str);
+
+	wsprintf(str, L"%04X", ExportTable->MinorVersion);
+	SetDlgItemText(hWndET, EDIT_MINORVERSION_EXPORT, str);
+	while ((BYTE*)(DWORD)FileBuffer + RVATOFOA(FileBuffer, ExportTable->Name) + cnt) {
+		if(!strcmp((char*)(DWORD)FileBuffer + RVATOFOA(FileBuffer, ExportTable->Name) + cnt,name)){
+			cnt += 3;
+			break;
+		}
+		cnt++;
+	}
+	MultiByteToWideChar(CP_ACP, MB_COMPOSITE, (char*)(DWORD)FileBuffer + RVATOFOA(FileBuffer, ExportTable->Name), cnt, str, 20);
+	//wsprintf(str, L"%ws", name);
+	SetDlgItemText(hWndET, EDIT_DLLNAME_EXPORT, str);
+
+	wsprintf(str, L"%08X", ExportTable->Base);
+	SetDlgItemText(hWndET, EDIT_BASE_EXPORT, str);
+
+	wsprintf(str, L"%08X", ExportTable->NumberOfFunctions);
+	SetDlgItemText(hWndET, EDIT_FUNCTIONSNUMBERS_EXPORT, str);
+
+	wsprintf(str, L"%08X", ExportTable->NumberOfNames);
+	SetDlgItemText(hWndET, EDIT_NAMENUMBERS_EXPORT, str);
+
+	wsprintf(str, L"%08X", ExportTable->AddressOfFunctions);
+	SetDlgItemText(hWndET, EDIT_FUNCTIONSADDRESS_EXPORT, str);
+
+	wsprintf(str, L"%08X", ExportTable->AddressOfNames);
+	SetDlgItemText(hWndET, EDIT_NAMEADDRESS_EXPORT, str);
+
+	wsprintf(str, L"%08X", ExportTable->AddressOfNameOrdinals);
+	SetDlgItemText(hWndET, EDIT_ORDADDRESS_EXPORT, str);
+
+	wsprintf(str, L"%08X", ExportTable->Name);
+	SetDlgItemText(hWndET, EDIT_NAME_EXPORT, str);
+}
+void InitListControlExportTable(HWND hWnd) {
+	HWND hListCtrl = GetDlgItem(hWnd, IDC_LIST_EXPORT);
+	EXPORTHWND = hListCtrl;
+	SendMessage(hListCtrl, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
+	PROCHWND = hListCtrl;
+	LVCOLUMN lvCol = { 0 };
+	lvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
+	lvCol.fmt = LVCFMT_LEFT;
+	lvCol.iSubItem = 0;
+	lvCol.cx = 50;
+	lvCol.pszText = (LPTSTR)TEXT("序号");
+	ListView_InsertColumn(hListCtrl, 0, &lvCol);
+
+	lvCol.iSubItem = 1;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("RVA");
+	ListView_InsertColumn(hListCtrl, 1, &lvCol);
+
+	lvCol.iSubItem = 2;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("文件中偏移");
+	ListView_InsertColumn(hListCtrl, 2, &lvCol);
+
+	lvCol.iSubItem = 2;
+	lvCol.cx = 200;
+	lvCol.pszText = (LPTSTR)TEXT("函数名字");
+	ListView_InsertColumn(hListCtrl, 3, &lvCol);
+}
+void ShowAllExport(HWND hWndET) {
+	_IMAGE_DOS_HEADER* DOS_HEADER = (_IMAGE_DOS_HEADER*)FileBuffer;
+	_IMAGE_NT_HEADERS* NT_HEADERS = (_IMAGE_NT_HEADERS*)((DWORD)FileBuffer + DOS_HEADER->e_lfanew);
+	_IMAGE_EXPORT_DIRECTORY* ExportTable = (_IMAGE_EXPORT_DIRECTORY*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, NT_HEADERS->OptionalHeader.DataDirectory[0].VirtualAddress));
+	LVITEMA item = {};
+	item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_STATE;
+	item.state = 0;
+	item.stateMask = 0;
+	for (int i = 0; i < ExportTable->NumberOfFunctions; i++) {
+		item.iItem = i;
+		item.iImage = i;
+		TCHAR szModName[MAX_PATH] = {};
+		// Get the full path to the module's file.
+		item.iSubItem = 0;
+		wsprintf(szModName, L"%d", i + ExportTable->Base);
+		item.pszText = (char*)szModName;
+		ListView_InsertItem(hWndET, &item);
+
+		item.iSubItem = 1;
+		wsprintf(szModName, L"%08X", *(DWORD*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, (DWORD)((DWORD*)ExportTable->AddressOfFunctions + i))));
+		item.pszText = (char*)szModName;
+		ListView_SetItem(hWndET, &item);
+
+		item.iSubItem = 2;
+		wsprintf(szModName, L"%08X", RVATOFOA(FileBuffer,*(DWORD*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, (DWORD)((DWORD*)ExportTable->AddressOfFunctions + i)))));
+		item.pszText = (char*)szModName;
+		ListView_SetItem(hWndET, &item);
+
+
+		item.iSubItem = 3;
+		if (*(DWORD*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, (DWORD)((DWORD*)ExportTable->AddressOfNames + i)))) {
+			//wsprintf(szModName, L"%08X", (DWORD)FileBuffer+RVATOFOA(FileBuffer,*(DWORD*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, (DWORD)((DWORD*)ExportTable->AddressOfNames + i)))));
+			MultiByteToWideChar(CP_ACP, MB_COMPOSITE, (char*)FileBuffer + RVATOFOA(FileBuffer, *(DWORD*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, (DWORD)((DWORD*)ExportTable->AddressOfNames + i)))), strlen((char*)FileBuffer + RVATOFOA(FileBuffer, *(DWORD*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, (DWORD)((DWORD*)ExportTable->AddressOfNames + i)))))+1, szModName, MAX_PATH);
+		}
+		else{
+			wcscpy (szModName,L"(null)");
+		}
+		item.pszText = (char*)szModName;
+		ListView_SetItem(hWndET, &item);
+	}
 }

@@ -9,6 +9,12 @@
 #define IDD_DIALOG_OPTIONALHEADER       108
 #define IDD_DIALOG_SECTIONS             109
 #define IDD_DIALOG_DATADIR              113
+#define IDD_DIALOG_EXPORT_EX            115
+#define IDD_DIALOG_IMPORT_EX            117
+#define IDD_DIALOG_RESOURCE_EX          118
+#define IDD_DIALOG_RELOC_EX             119
+#define IDD_DIALOG_BOUND_EX             120
+#define IDD_DIALOG_IAT_EX               121
 #define IDC_BUTTON_QUIT                 1001
 #define IDC_BUTTON_OPEN                 1002
 #define IDC_BUTTON_ABOUT                1005
@@ -18,6 +24,7 @@
 #define EDIT_BYTE                       1018
 #define EDIT_SECTIONNUM                 1018
 #define EDIT_MAJORLINKERVERSION         1018
+#define EDIT_MINORVERSION_EXPORT        1018
 #define EDIT_MAGICNUM3                  1019
 #define EDIT_CHARACTER_FILEHEADER       1019
 #define EDIT_MINORLINKERVERSION         1019
@@ -49,32 +56,41 @@
 #define EDIT_TO                         1035
 #define EDIT_SIZEOFINITDATA             1035
 #define EDIT_IMPORTTABLE_RVA            1035
+#define EDIT_FUNCTIONSADDRESS_EXPORT    1035
 #define EDIT_RS                         1036
 #define EDIT_SIZEOFUNINITDATA           1036
 #define EDIT_IMPORTTABLE_SIZE           1036
+#define EDIT_NAMENUMBERS_EXPORT         1036
 #define BUTTON_SECTION                  1037
 #define EDIT_SYMBOLPOINT                1037
 #define EDIT_OEP                        1037
 #define EDIT_RESOURCETABLE_RVA          1037
+#define EDIT_ORDADDRESS_EXPORT          1037
 #define BUTTON_OPTIONAL_HEADER          1038
 #define EDIT_SYMBOLNUM                  1038
 #define EDIT_CODEBASE                   1038
 #define EDIT_RESOURCETABLE_SIZE         1038
+#define EDIT_NAME_EXPORT                1038
 #define EDIT_FILEALIGNMENT              1039
 #define BUTTON_DATADIR                  1039
 #define EDIT_EXTABLE_RVA                1039
+#define EDIT_NAMEADDRESS_EXPORT         1039
 #define BUTTON_FILE_HEADER              1040
 #define EDIT_SECTIONALIGNMENT           1040
 #define EDIT_EXTABLE_SIZE               1040
+#define EDIT_FUNCTIONSNUMBERS_EXPORT    1040
 #define IDC_BUTTON1                     1041
 #define EDIT_DATABASE                   1041
 #define EDIT_SETABLE_RVA                1041
 #define EDIT_IMAGEBASE                  1042
 #define EDIT_SETABLE_SIZE               1042
+#define EDIT_TIMEDATE_EXPORT            1042
 #define IDC_LIST_SECTIONS               1043
 #define EDIT_WIN32VERSION               1043
+#define EDIT_BASE_EXPORT                1043
 #define EDIT_MACHINE                    1044
 #define EDIT_SIZEIMAGE                  1044
+#define EDIT_DLLNAME_EXPORT             1044
 #define EDIT_TIMEDATE_FILEHEADER        1045
 #define EDIT_SIZEHEADER                 1045
 #define EDIT_BRTABLE_RVA                1045
@@ -106,17 +122,27 @@
 #define EDIT_COMTABLE_RVA               1063
 #define EDIT_COMTABLE_SIZE              1064
 #define EDIT_RESERVED_RVA               1065
-#define EDIT_RESERVERD_SIZE             1066
 #define EDIT_RESERVED_SIZE              1066
 #define EDIT_EXPORTTABLE_RVA            1067
+#define BUTTON_EXPORTTABLE_EX           1068
+#define BUTTON_IMPORTTABLE_EX           1069
+#define IDC_LIST1                       1069
+#define IDC_LIST_EXPORT                 1069
+#define BUTTON_RESOURCETABLE_EX         1070
+#define EDIT_CHARACTER_EXPORT           1070
+#define BUTTON_RELOC_EX                 1071
+#define IDC_MA                          1071
+#define BUTTON_BOUNDIMPORT_EX           1072
+#define EDIT_MAJORVERSION_EXPORT        1072
+#define BUTTON_IAT_EX                   1073
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        115
+#define _APS_NEXT_RESOURCE_VALUE        127
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1068
+#define _APS_NEXT_CONTROL_VALUE         1073
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
