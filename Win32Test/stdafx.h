@@ -80,4 +80,6 @@ void ShowDosHeader(HWND hWndPE);
 void InitListControlSection(HWND hWnd);
 void ShowAllSection(HWND hWndSection);
 void ShowFileHeader(HWND hWndFH);
+void ShowOptionalHeader(HWND hWndOH);
+
 #endif

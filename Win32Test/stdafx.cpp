@@ -967,7 +967,6 @@ BOOL CALLBACK Dlgproc_FileHeader(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lPar
 	switch (Msg) {
 	case WM_INITDIALOG: {
 		ShowFileHeader(hWnd);
-		ShowAllSection(SECTIONHWND);
 		break;
 	}
 	case WM_COMMAND: {
@@ -987,6 +986,10 @@ BOOL CALLBACK Dlgproc_FileHeader(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lPar
 }
 BOOL CALLBACK Dlgproc_OptionalHeader(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
 	switch (Msg) {
+	case WM_INITDIALOG: {
+		ShowOptionalHeader(hWnd);
+		break;
+	}
 	case WM_COMMAND: {
 		switch (LOWORD(wParam)) {
 		case WM_DESTROY: {
@@ -1123,6 +1126,7 @@ void ShowFileHeader(HWND hWndFH) {
 	TCHAR str[20] = {};
 	_IMAGE_DOS_HEADER* DOS_HEADER = (_IMAGE_DOS_HEADER*)FileBuffer;
 	_IMAGE_NT_HEADERS* NT_HEADERS = (_IMAGE_NT_HEADERS*)((DWORD)FileBuffer + DOS_HEADER->e_lfanew);
+
 	wsprintf(str, L"%04X", NT_HEADERS->FileHeader.Machine);
 	SetDlgItemText(hWndFH, EDIT_MACHINE, str);
 
@@ -1144,4 +1148,99 @@ void ShowFileHeader(HWND hWndFH) {
 	wsprintf(str, L"%04X", NT_HEADERS->FileHeader.Characteristics);
 	SetDlgItemText(hWndFH, EDIT_CHARACTER_FILEHEADER, str);
 	return;
+}
+void ShowOptionalHeader(HWND hWndOH) {
+	TCHAR str[20] = {};
+	_IMAGE_DOS_HEADER* DOS_HEADER = (_IMAGE_DOS_HEADER*)FileBuffer;
+	_IMAGE_NT_HEADERS* NT_HEADERS = (_IMAGE_NT_HEADERS*)((DWORD)FileBuffer + DOS_HEADER->e_lfanew);
+
+	wsprintf(str, L"%04X", NT_HEADERS->OptionalHeader.Magic);
+	SetDlgItemText(hWndOH, EDIT_MAGICNUM_OPTIONALHEADER, str);
+
+	wsprintf(str, L"%02X", NT_HEADERS->OptionalHeader.MajorLinkerVersion);
+	SetDlgItemText(hWndOH, EDIT_MAJORLINKERVERSION, str);
+
+	wsprintf(str, L"%02X", NT_HEADERS->OptionalHeader.MinorLinkerVersion);
+	SetDlgItemText(hWndOH, EDIT_MINORLINKERVERSION, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.SizeOfCode);
+	SetDlgItemText(hWndOH, EDIT_SIZEOFCODE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.SizeOfInitializedData);
+	SetDlgItemText(hWndOH, EDIT_SIZEOFINITDATA, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.SizeOfUninitializedData);
+	SetDlgItemText(hWndOH, EDIT_SIZEOFUNINITDATA, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.AddressOfEntryPoint);
+	SetDlgItemText(hWndOH, EDIT_OEP, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.BaseOfCode);
+	SetDlgItemText(hWndOH, EDIT_CODEBASE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.BaseOfData);
+	SetDlgItemText(hWndOH, EDIT_DATABASE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.ImageBase);
+	SetDlgItemText(hWndOH, EDIT_IMAGEBASE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.SectionAlignment);
+	SetDlgItemText(hWndOH, EDIT_SECTIONALIGNMENT, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.FileAlignment);
+	SetDlgItemText(hWndOH, EDIT_FILEALIGNMENT, str);
+
+	wsprintf(str, L"%04X", NT_HEADERS->OptionalHeader.MajorOperatingSystemVersion);
+	SetDlgItemText(hWndOH, EDIT_MAJOROSVERSION, str);
+
+	wsprintf(str, L"%04X", NT_HEADERS->OptionalHeader.MinorOperatingSystemVersion);
+	SetDlgItemText(hWndOH, EDIT_MINOROSVERSION, str);
+
+	wsprintf(str, L"%04X", NT_HEADERS->OptionalHeader.MajorImageVersion);
+	SetDlgItemText(hWndOH, EDIT_MAJORIMAGEVERSION, str);
+
+	wsprintf(str, L"%04X", NT_HEADERS->OptionalHeader.MinorImageVersion);
+	SetDlgItemText(hWndOH, EDIT_MINORIMAGEVERSION, str);
+
+	wsprintf(str, L"%04X", NT_HEADERS->OptionalHeader.MajorSubsystemVersion);
+	SetDlgItemText(hWndOH, EDIT_MAJORSSVERSION, str);
+
+	wsprintf(str, L"%04X", NT_HEADERS->OptionalHeader.MinorSubsystemVersion);
+	SetDlgItemText(hWndOH, EDIT_MINORSSVERSION, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.Win32VersionValue);
+	SetDlgItemText(hWndOH, EDIT_WIN32VERSION, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.SizeOfImage);
+	SetDlgItemText(hWndOH, EDIT_SIZEIMAGE, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.SizeOfHeaders);
+	SetDlgItemText(hWndOH, EDIT_SIZEHEADER, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.CheckSum);
+	SetDlgItemText(hWndOH, EDIT_CHECKSUM_OPTIONALHEADER, str);
+
+	wsprintf(str, L"%04X", NT_HEADERS->OptionalHeader.Subsystem);
+	SetDlgItemText(hWndOH, EDIT_SUBSYSTEM, str);
+
+	wsprintf(str, L"%04X", NT_HEADERS->OptionalHeader.DllCharacteristics);
+	SetDlgItemText(hWndOH, EDIT_DLLCHARACTER, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.SizeOfStackReserve);
+	SetDlgItemText(hWndOH, EDIT_STACKR, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.SizeOfStackCommit);
+	SetDlgItemText(hWndOH, EDIT_STACKC, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.SizeOfHeapReserve);
+	SetDlgItemText(hWndOH, EDIT_HEAPR, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.SizeOfHeapCommit);
+	SetDlgItemText(hWndOH, EDIT_HEAPC, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.LoaderFlags);
+	SetDlgItemText(hWndOH, EDIT_LOADERFLAGS, str);
+
+	wsprintf(str, L"%08X", NT_HEADERS->OptionalHeader.NumberOfRvaAndSizes);
+	SetDlgItemText(hWndOH, EDIT_RVANUMBER, str);
 }
