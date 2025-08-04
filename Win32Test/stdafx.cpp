@@ -8,6 +8,12 @@ HWND PROCHWND;
 HWND MODULEHWND;
 HWND SECTIONHWND;
 HWND EXPORTHWND;
+HWND DLL_IMPORTHWND;
+HWND FUNCTION_IMPORTHWND;
+HWND RELOCBLOCKHWND;
+HWND RELOCINFOHWND;
+HWND BOUNDIMPORTHWND;
+HWND TREE_RESOURCEHWND;
 TCHAR szFile[MAX_PATH];
 LPVOID FileBuffer;
 
@@ -1054,10 +1060,8 @@ BOOL CALLBACK Dlgproc_DataDirectory(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM l
 			DialogBox(hAppInstance, MAKEINTRESOURCE(IDD_DIALOG_BOUND_EX), hWnd, Dlgproc_BoundEx);
 			break;
 		}
-		case BUTTON_IAT_EX: {
-			DialogBox(hAppInstance, MAKEINTRESOURCE(IDD_DIALOG_IAT_EX), hWnd, Dlgproc_IATEx);
-			break;
-		}
+		
+		
 		}
 		break;
 	}
@@ -1070,12 +1074,40 @@ BOOL CALLBACK Dlgproc_DataDirectory(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM l
 BOOL CALLBACK Dlgproc_ImportEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
 	switch (Msg) {
 	case WM_INITDIALOG: {
+		InitListControlImportTable(hWnd);
+		ShowDllImport(hWnd);
 		break;
 	}
 	case WM_COMMAND: {
 		switch (LOWORD(wParam)) {
 		case WM_DESTROY: {
 			EndDialog(hWnd, IDCANCEL);
+			break;
+		}
+		}
+		break;
+	}
+	case WM_NOTIFY: {
+		switch (wParam) {
+		case IDC_LIST_DLL_IMPORTTABLE: {
+			TCHAR str[20] = {};
+			char STR_NUM[20] = {};
+			NMLISTVIEW* listview = (NMLISTVIEW*)lParam;
+			switch (listview->hdr.code) {
+			case NM_CLICK: {
+				int IAT_RVA, INT_RVA;
+				ListView_GetItemText(DLL_IMPORTHWND, listview->iItem, 5, str, 20);
+				sprintf_s(STR_NUM, 20, "%ws", str);
+				sscanf(STR_NUM, "%08X", &IAT_RVA);
+
+				ListView_GetItemText(DLL_IMPORTHWND, listview->iItem, 1, str, 20);
+				sprintf_s(STR_NUM, 20, "%ws", str);
+				sscanf(STR_NUM, "%08X", &INT_RVA);
+				ShowAPIImport(FUNCTION_IMPORTHWND, INT_RVA ,IAT_RVA);
+				break;
+			}
+			}
+
 			break;
 		}
 		}
@@ -1113,6 +1145,7 @@ BOOL CALLBACK Dlgproc_ExportEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
 BOOL CALLBACK Dlgproc_ResourceEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
 	switch (Msg) {
 	case WM_INITDIALOG: {
+		ShowAllResource(hWnd);
 		break;
 	}
 	case WM_COMMAND: {
@@ -1133,6 +1166,8 @@ BOOL CALLBACK Dlgproc_ResourceEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lPar
 BOOL CALLBACK Dlgproc_BoundEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
 	switch (Msg) {
 	case WM_INITDIALOG: {
+		InitListControlBoundImport(hWnd);
+		ShowAllBoundImport(BOUNDIMPORTHWND);
 		break;
 	}
 	case WM_COMMAND: {
@@ -1153,6 +1188,8 @@ BOOL CALLBACK Dlgproc_BoundEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 BOOL CALLBACK Dlgproc_RelocEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
 	switch (Msg) {
 	case WM_INITDIALOG: {
+		InitListControlRelocTable(hWnd);
+		ShowAllRelocBlock(RELOCBLOCKHWND);
 		break;
 	}
 	case WM_COMMAND: {
@@ -1164,21 +1201,17 @@ BOOL CALLBACK Dlgproc_RelocEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	}
-	default: {
-		return FALSE;
-	}
-	}
-	return TRUE;
-}
-BOOL CALLBACK Dlgproc_IATEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
-	switch (Msg) {
-	case WM_INITDIALOG: {
-		break;
-	}
-	case WM_COMMAND: {
-		switch (LOWORD(wParam)) {
-		case WM_DESTROY: {
-			EndDialog(hWnd, IDCANCEL);
+	case WM_NOTIFY: {
+		switch (wParam) {
+		case IDC_LIST_RELOC_BLOCK: {
+			NMLISTVIEW* listview = (NMLISTVIEW*)lParam;
+			switch (listview->hdr.code) {
+			case NM_CLICK: {
+				ShowAllRelocBlockINFO(RELOCINFOHWND,listview->iItem);
+				break;
+			}
+			}
+
 			break;
 		}
 		}
@@ -1190,11 +1223,11 @@ BOOL CALLBACK Dlgproc_IATEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
 	}
 	return TRUE;
 }
+
 void InitListControlSection(HWND hWnd) {
 	HWND hListCtrl = GetDlgItem(hWnd, IDC_LIST_SECTIONS);
 	SECTIONHWND = hListCtrl;
 	SendMessage(hListCtrl, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
-	PROCHWND = hListCtrl;
 	LVCOLUMN lvCol = { 0 };
 	lvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
 	lvCol.fmt = LVCFMT_LEFT;
@@ -1546,7 +1579,6 @@ void InitListControlExportTable(HWND hWnd) {
 	HWND hListCtrl = GetDlgItem(hWnd, IDC_LIST_EXPORT);
 	EXPORTHWND = hListCtrl;
 	SendMessage(hListCtrl, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
-	PROCHWND = hListCtrl;
 	LVCOLUMN lvCol = { 0 };
 	lvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
 	lvCol.fmt = LVCFMT_LEFT;
@@ -1565,10 +1597,182 @@ void InitListControlExportTable(HWND hWnd) {
 	lvCol.pszText = (LPTSTR)TEXT("文件中偏移");
 	ListView_InsertColumn(hListCtrl, 2, &lvCol);
 
-	lvCol.iSubItem = 2;
+	lvCol.iSubItem = 3;
 	lvCol.cx = 200;
 	lvCol.pszText = (LPTSTR)TEXT("函数名字");
 	ListView_InsertColumn(hListCtrl, 3, &lvCol);
+}
+void InitListControlImportTable(HWND hWnd) {
+	HWND hListCtrl = GetDlgItem(hWnd, IDC_LIST_DLL_IMPORTTABLE);
+	DLL_IMPORTHWND = hListCtrl;
+	SendMessage(hListCtrl, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
+	LVCOLUMN lvCol = { 0 };
+	lvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
+	lvCol.fmt = LVCFMT_LEFT;
+	lvCol.iSubItem = 0;
+	lvCol.cx = 150;
+	lvCol.pszText = (LPTSTR)TEXT("DLL名字");
+	ListView_InsertColumn(hListCtrl, 0, &lvCol);
+
+	lvCol.iSubItem = 1;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("INT RVA");
+	ListView_InsertColumn(hListCtrl, 1, &lvCol);
+
+	lvCol.iSubItem = 2;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("时间戳");
+	ListView_InsertColumn(hListCtrl, 2, &lvCol);
+
+	lvCol.iSubItem = 3;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("前向链");
+	ListView_InsertColumn(hListCtrl, 3, &lvCol);
+
+	lvCol.iSubItem = 4;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("名字偏移");
+	ListView_InsertColumn(hListCtrl, 4, &lvCol);
+
+	lvCol.iSubItem = 5;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("IAT RVA");
+	ListView_InsertColumn(hListCtrl, 5, &lvCol);
+
+	hListCtrl = GetDlgItem(hWnd, IDC_LIST_FUNCTION_IMPORTTABLE);
+	FUNCTION_IMPORTHWND = hListCtrl;
+	SendMessage(hListCtrl, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
+
+	lvCol.iSubItem = 0;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("函数名字");
+	ListView_InsertColumn(hListCtrl, 0, &lvCol);
+
+	lvCol.iSubItem = 1;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("RVA");
+	ListView_InsertColumn(hListCtrl, 1, &lvCol);
+
+	lvCol.iSubItem = 2;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("文件偏移");
+	ListView_InsertColumn(hListCtrl, 2, &lvCol);
+
+	lvCol.iSubItem = 3;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("值");
+	ListView_InsertColumn(hListCtrl, 3, &lvCol);
+
+	lvCol.iSubItem = 4;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("编号");
+	ListView_InsertColumn(hListCtrl, 4, &lvCol);
+}
+void ShowDllImport(HWND HWNDIT) {
+	_IMAGE_DOS_HEADER* DOS_HEADER = (_IMAGE_DOS_HEADER*)FileBuffer;
+	_IMAGE_NT_HEADERS* NT_HEADERS = (_IMAGE_NT_HEADERS*)((DWORD)FileBuffer + DOS_HEADER->e_lfanew);
+	_IMAGE_IMPORT_DESCRIPTOR* IMPORT_TABLE = (_IMAGE_IMPORT_DESCRIPTOR*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, NT_HEADERS->OptionalHeader.DataDirectory[1].VirtualAddress));
+	int cnt = 0;
+	LVITEMA item = {};
+	item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_STATE;
+	item.state = 0;
+	item.stateMask = 0;
+	
+	DWORD offset1 = 0;
+	DWORD offset2 = 0;
+	while ((IMPORT_TABLE + cnt)->Characteristics || (IMPORT_TABLE + cnt)->FirstThunk || (IMPORT_TABLE + cnt)->ForwarderChain || (IMPORT_TABLE + cnt)->Name || (IMPORT_TABLE + cnt)->OriginalFirstThunk || (IMPORT_TABLE + cnt)->TimeDateStamp) {
+		item.iItem = cnt;
+		item.iImage = cnt;
+		TCHAR szModName[MAX_PATH] = {};
+		item.iSubItem = 0;
+		MultiByteToWideChar(CP_ACP, MB_COMPOSITE, (char*)FileBuffer + RVATOFOA(FileBuffer, (IMPORT_TABLE + cnt)->Name), strlen((char*)FileBuffer + RVATOFOA(FileBuffer, (IMPORT_TABLE + cnt)->Name))+1, szModName, MAX_PATH);
+		item.pszText = (char*)szModName;
+		ListView_InsertItem(DLL_IMPORTHWND, &item);
+
+		item.iSubItem = 1;
+		wsprintf(szModName, L"%08X", (IMPORT_TABLE + cnt)->OriginalFirstThunk);
+		item.pszText = (char*)szModName;
+		ListView_SetItem(DLL_IMPORTHWND, &item);
+		
+		item.iSubItem = 2;
+		wsprintf(szModName, L"%08X", (IMPORT_TABLE + cnt)->TimeDateStamp);
+		item.pszText = (char*)szModName;
+		ListView_SetItem(DLL_IMPORTHWND, &item);
+
+		item.iSubItem = 3;
+		wsprintf(szModName, L"%08X", (IMPORT_TABLE + cnt)->ForwarderChain);
+		item.pszText = (char*)szModName;
+		ListView_SetItem(DLL_IMPORTHWND, &item);
+
+		item.iSubItem = 4;
+		wsprintf(szModName, L"%08X", (IMPORT_TABLE + cnt)->Name);
+		item.pszText = (char*)szModName;
+		ListView_SetItem(DLL_IMPORTHWND, &item);
+
+		item.iSubItem = 5;
+		wsprintf(szModName, L"%08X", (IMPORT_TABLE + cnt)->FirstThunk);
+		item.pszText = (char*)szModName;
+		ListView_SetItem(DLL_IMPORTHWND, &item);
+
+		cnt++;
+	}
+}
+void ShowAPIImport(HWND HWNDIT,DWORD OFT_RVA,DWORD FT_RVA) {
+	ListView_DeleteAllItems(FUNCTION_IMPORTHWND);
+	int cnt = 0;
+	LVITEMA item = {};
+	item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_STATE;
+	item.state = 0;
+	item.stateMask = 0;
+	_IMAGE_THUNK_DATA32* IAT_ =(_IMAGE_THUNK_DATA32*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, FT_RVA));
+	_IMAGE_THUNK_DATA32* INT_ = (_IMAGE_THUNK_DATA32*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, OFT_RVA));
+	while ((IAT_ + cnt)->u1.Ordinal) {
+		item.iItem = cnt;
+		item.iImage = cnt;
+		TCHAR szModName[MAX_PATH] = {};
+		if ((INT_ + cnt)->u1.Ordinal & 0x80000000) {
+			//printf("%d按序号导入:%d\n", cnt + 1, (INT_ + cnt)->u1.Ordinal & 0x7FFFFFFFFF);
+			wsprintf(szModName, L"Ordinal:%04X", (INT_ + cnt)->u1.Ordinal & 0x7FFFFFFF);
+			item.iSubItem = 0;
+			item.pszText = (char*)szModName;
+			ListView_InsertItem(FUNCTION_IMPORTHWND, &item);
+			item.iSubItem = 4;
+			wcscpy(szModName, L"(null)");
+			item.pszText = (char*)szModName;
+			ListView_SetItem(FUNCTION_IMPORTHWND, &item);
+		}
+		else {
+			_IMAGE_IMPORT_BY_NAME* IMPORT_BY_NAME = (_IMAGE_IMPORT_BY_NAME*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, (INT_ + cnt)->u1.Ordinal));
+			MultiByteToWideChar(CP_ACP, MB_COMPOSITE, IMPORT_BY_NAME->Name, strlen(IMPORT_BY_NAME->Name) + 1, szModName, MAX_PATH);
+			//printf("%d按名字导入:%x---->%s\n", cnt + 1, IMPORT_BY_NAME->Hint, IMPORT_BY_NAME->Name);
+			item.iSubItem = 0;
+			item.pszText = (char*)szModName;
+			ListView_InsertItem(FUNCTION_IMPORTHWND, &item);
+			item.iSubItem = 4;
+			wsprintf(szModName, L"%04X", IMPORT_BY_NAME->Hint);
+			item.pszText = (char*)szModName;
+			ListView_SetItem(FUNCTION_IMPORTHWND, &item);
+		}
+		
+		item.iSubItem = 1;
+		wsprintf(szModName, L"%08X", (_IMAGE_THUNK_DATA32*)FT_RVA+cnt);
+		item.pszText = (char*)szModName;
+		ListView_SetItem(FUNCTION_IMPORTHWND, &item);
+
+		item.iSubItem = 2;
+		wsprintf(szModName, L"%08X", RVATOFOA(FileBuffer, (DWORD)((_IMAGE_THUNK_DATA32*)FT_RVA + cnt)));
+		item.pszText = (char*)szModName;
+		ListView_SetItem(FUNCTION_IMPORTHWND, &item);
+
+		item.iSubItem = 3;
+		//wsprintf(szModName, L"%08X", (IMPORT_TABLE + cnt)->ForwarderChain);
+		item.pszText = (char*)szModName;
+		ListView_SetItem(FUNCTION_IMPORTHWND, &item);
+
+		
+		
+		cnt++;
+	}
 }
 void ShowAllExport(HWND hWndET) {
 	_IMAGE_DOS_HEADER* DOS_HEADER = (_IMAGE_DOS_HEADER*)FileBuffer;
@@ -1609,5 +1813,303 @@ void ShowAllExport(HWND hWndET) {
 		}
 		item.pszText = (char*)szModName;
 		ListView_SetItem(hWndET, &item);
+	}
+}
+void ShowAllResource(HWND hWndRL) {
+	_IMAGE_DOS_HEADER* DOS_HEADER = (_IMAGE_DOS_HEADER*)FileBuffer;
+	_IMAGE_NT_HEADERS* NT_HEADERS = (_IMAGE_NT_HEADERS*)((DWORD)FileBuffer + DOS_HEADER->e_lfanew);
+	DWORD Base = (DWORD)FileBuffer + RVATOFOA(FileBuffer, NT_HEADERS->OptionalHeader.DataDirectory[2].VirtualAddress);
+	HWND hListCtrl = GetDlgItem(hWndRL, IDC_TREE_RESOURCE);
+	TREE_RESOURCEHWND = hListCtrl;
+	ShowAllResourceDFS(hListCtrl, Base, Base, NULL);
+}
+
+void ShowAllResourceDFS(HWND hWndRL,DWORD OFFSET,  DWORD Base, HTREEITEM fatherNode) {
+	
+	TVINSERTSTRUCT node = { fatherNode, TVI_SORT };
+	TVITEM tvi = {};
+	node.item.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM;
+	if (NULL != fatherNode)   //把上级图标改为文件夹
+	{
+		tvi.mask = TVIF_IMAGE | TVIF_SELECTEDIMAGE;   //只处理 IMAGE
+		tvi.hItem = fatherNode;
+		tvi.iImage = 10;
+		tvi.iSelectedImage = 10;
+		TreeView_SetItem(hWndRL, &tvi);
+	}
+
+	node.item.iImage = 0;          //初始图标都是文件 
+	node.item.iSelectedImage = 0;
+	node.hParent = fatherNode;
+	node.hInsertAfter = TVI_LAST;
+	
+	TCHAR szModName[MAX_PATH] = {};
+	_IMAGE_RESOURCE_DIRECTORY* RESOURCE_DIR = (_IMAGE_RESOURCE_DIRECTORY*)OFFSET;
+	_IMAGE_RESOURCE_DIRECTORY_ENTRY* RESOURCE_DIR_E_START = (_IMAGE_RESOURCE_DIRECTORY_ENTRY*)((DWORD)RESOURCE_DIR + sizeof(_IMAGE_RESOURCE_DIRECTORY));
+
+	for (int i = 0; i < RESOURCE_DIR->NumberOfIdEntries + RESOURCE_DIR->NumberOfNamedEntries; i++) {
+		if ((RESOURCE_DIR_E_START + i)->NameIsString) {
+
+			_IMAGE_RESOURCE_DIR_STRING_U* RESOURCE_U = (_IMAGE_RESOURCE_DIR_STRING_U*)((DWORD)Base + RVATOFOA(FileBuffer, (RESOURCE_DIR_E_START + i)->NameOffset));
+			memcpy(szModName, RESOURCE_U->NameString, RESOURCE_U->Length * sizeof(WCHAR));
+		}
+		else {
+			wsprintf(szModName,L"%d", (RESOURCE_DIR_E_START + i)->Id);
+			
+		}
+		node.item.pszText = szModName;
+		HTREEITEM htree=TreeView_InsertItem(hWndRL, &node);
+		if ((RESOURCE_DIR_E_START + i)->DataIsDirectory) {
+			ShowAllResourceDFS(hWndRL, (DWORD)Base + RVATOFOA(FileBuffer, (RESOURCE_DIR_E_START + i)->OffsetToDirectory), Base, htree);
+		}
+		else {
+			_IMAGE_DATA_DIRECTORY* DATA_DIR = (_IMAGE_DATA_DIRECTORY*)((DWORD)Base + RVATOFOA(FileBuffer, (RESOURCE_DIR_E_START + i)->OffsetToDirectory));
+			_IMAGE_RESOURCE_DATA_ENTRY* RESOURCE_DATA_E = (_IMAGE_RESOURCE_DATA_ENTRY*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, DATA_DIR->VirtualAddress));
+			wprintf(L"      -->资源RVA:%08X     尺寸:%X\n", DATA_DIR->VirtualAddress, DATA_DIR->Size);
+			return;
+		}
+	}
+
+	return;
+}
+void InitListControlRelocTable(HWND hWnd) {
+	HWND hListCtrl = GetDlgItem(hWnd, IDC_LIST_RELOC_BLOCK);
+	RELOCBLOCKHWND= hListCtrl;;
+	SendMessage(hListCtrl, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
+	LVCOLUMN lvCol = { 0 };
+	lvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
+	lvCol.fmt = LVCFMT_LEFT;
+
+	lvCol.iSubItem = 0;
+	lvCol.cx = 50;
+	lvCol.pszText = (LPTSTR)TEXT("序号");
+	ListView_InsertColumn(hListCtrl, 0, &lvCol);
+
+	lvCol.iSubItem = 1;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("属于段");
+	ListView_InsertColumn(hListCtrl, 1, &lvCol);
+
+	lvCol.iSubItem = 2;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("RVA");
+	ListView_InsertColumn(hListCtrl,2, &lvCol);
+
+	lvCol.iSubItem = 3;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("块大小");
+	ListView_InsertColumn(hListCtrl, 3, &lvCol);
+
+	lvCol.iSubItem = 4;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("数量");
+	ListView_InsertColumn(hListCtrl, 4, &lvCol);
+
+	hListCtrl = GetDlgItem(hWnd, IDC_LIST_RELOC_BLOCKINFO);
+	RELOCINFOHWND = hListCtrl;
+
+	lvCol.iSubItem = 0;
+	lvCol.cx = 50;
+	lvCol.pszText = (LPTSTR)TEXT("序号");
+	ListView_InsertColumn(hListCtrl, 0, &lvCol);
+
+	lvCol.iSubItem = 1;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("RVA");
+	ListView_InsertColumn(hListCtrl, 1, &lvCol);
+
+	lvCol.iSubItem = 2;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("文件偏移");
+	ListView_InsertColumn(hListCtrl, 2, &lvCol);
+
+	lvCol.iSubItem = 3;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("类型");
+	ListView_InsertColumn(hListCtrl, 3, &lvCol);
+
+}
+void ShowAllRelocBlock(HWND hWndRL) {
+	_IMAGE_DOS_HEADER* DOS_HEADER = (_IMAGE_DOS_HEADER*)FileBuffer;
+	_IMAGE_NT_HEADERS* NT_HEADERS = (_IMAGE_NT_HEADERS*)((DWORD)FileBuffer + DOS_HEADER->e_lfanew);
+	_IMAGE_SECTION_HEADER* SECTION_HEADER = (_IMAGE_SECTION_HEADER*)((DWORD)FileBuffer+ DOS_HEADER->e_lfanew + 0x4 + sizeof(_IMAGE_FILE_HEADER) + NT_HEADERS->FileHeader.SizeOfOptionalHeader);
+	_IMAGE_BASE_RELOCATION* BASE_RELOC = (_IMAGE_BASE_RELOCATION*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, NT_HEADERS->OptionalHeader.DataDirectory[5].VirtualAddress));
+	LVITEMA item = {};
+	item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_STATE;
+	item.state = 0;
+	item.stateMask = 0;
+	
+	TCHAR szModName[MAX_PATH] = {};
+	// Get the full path to the module's file.
+	
+	int cnt=0;
+	while (BASE_RELOC->VirtualAddress) {
+		item.iItem = cnt;
+		item.iImage = cnt;
+		int NUM = (BASE_RELOC->SizeOfBlock - 0x8) / 2;
+		int RVA;
+		item.iSubItem = 0;
+		wsprintf(szModName, L"%d", cnt);
+		item.pszText = (char*)szModName;
+		ListView_InsertItem(hWndRL, &item);
+		RVA = BASE_RELOC->VirtualAddress;
+		if (RVA < SECTION_HEADER->VirtualAddress) {
+			MultiByteToWideChar(CP_ACP, MB_COMPOSITE, (char*)SECTION_HEADER->Name, 8, szModName, MAX_PATH);
+		}
+		else {
+			for (int i = 0; i < NT_HEADERS->FileHeader.NumberOfSections; i++) {
+				if (i == NT_HEADERS->FileHeader.NumberOfSections - 1 || (RVA >= (SECTION_HEADER + i)->VirtualAddress && RVA < (SECTION_HEADER + i + 1)->VirtualAddress)) {
+					MultiByteToWideChar(CP_ACP, MB_COMPOSITE, (char*)(SECTION_HEADER+i)->Name, 8, szModName, MAX_PATH);
+					break;
+				}
+			}
+		}
+		item.iSubItem = 1;
+		item.pszText = (char*)szModName;
+		ListView_SetItem(hWndRL, &item);
+
+		item.iSubItem = 2;
+		wsprintf(szModName, L"%08X", BASE_RELOC->VirtualAddress);
+		item.pszText = (char*)szModName;
+		ListView_SetItem(hWndRL, &item);
+
+		item.iSubItem = 3;
+		wsprintf(szModName, L"%08X", BASE_RELOC->SizeOfBlock);
+		item.pszText = (char*)szModName;
+		ListView_SetItem(hWndRL, &item);
+
+		item.iSubItem = 4;
+		wsprintf(szModName, L"%08X", NUM);
+		item.pszText = (char*)szModName;
+		ListView_SetItem(hWndRL, &item);
+
+		BASE_RELOC = (_IMAGE_BASE_RELOCATION*)((DWORD)BASE_RELOC + BASE_RELOC->SizeOfBlock);
+		cnt++;
+	}
+}
+void ShowAllRelocBlockINFO(HWND hWndRLIF,DWORD Index) {
+	ListView_DeleteAllItems(hWndRLIF);
+	int RVA,cnt=0;
+	_IMAGE_DOS_HEADER* DOS_HEADER = (_IMAGE_DOS_HEADER*)FileBuffer;
+	_IMAGE_NT_HEADERS* NT_HEADERS = (_IMAGE_NT_HEADERS*)((DWORD)FileBuffer + DOS_HEADER->e_lfanew);
+	_IMAGE_SECTION_HEADER* SECTION_HEADER = (_IMAGE_SECTION_HEADER*)((DWORD)FileBuffer + DOS_HEADER->e_lfanew + 0x4 + sizeof(_IMAGE_FILE_HEADER) + NT_HEADERS->FileHeader.SizeOfOptionalHeader);
+	_IMAGE_BASE_RELOCATION* BASE_RELOC = (_IMAGE_BASE_RELOCATION*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, NT_HEADERS->OptionalHeader.DataDirectory[5].VirtualAddress));
+	while (BASE_RELOC->VirtualAddress) {
+		if (Index == cnt) {
+			LVITEMA item = {};
+			item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_STATE;
+			item.state = 0;
+			item.stateMask = 0;
+
+			TCHAR szModName[MAX_PATH] = {};
+			int NUM = (BASE_RELOC->SizeOfBlock - 0x8) / 2;
+			for (int i = 0; i < NUM; i++) {
+				item.iItem = i;
+				item.iImage = i;
+
+				item.iSubItem = 0;
+				wsprintf(szModName, L"%d", i+1);
+				item.pszText = (char*)szModName;
+				ListView_InsertItem(hWndRLIF, &item);
+
+				if ((*((WORD*)((DWORD)BASE_RELOC + 0x8) + i)) >> 12 == 0x3) {
+					RVA = BASE_RELOC->VirtualAddress + ((*((WORD*)((DWORD)BASE_RELOC + 0x8) + i)) & 0x0FFF);
+					//printf("%d     RVA=%x   FOA=%x\n", i + 1, RVA, RVATOFOA(FileBuffer, RVA));
+				}
+
+				item.iSubItem = 1;
+				wsprintf(szModName, L"%08X", RVA);
+				item.pszText = (char*)szModName;
+				ListView_SetItem(hWndRLIF, &item);
+
+				item.iSubItem = 2;
+				wsprintf(szModName, L"%08X", RVATOFOA(FileBuffer,RVA));
+				item.pszText = (char*)szModName;
+				ListView_SetItem(hWndRLIF, &item);
+
+				item.iSubItem = 3;
+				wsprintf(szModName, L"%04x", (*((WORD*)((DWORD)BASE_RELOC + 0x8) + i)) >> 12);
+				item.pszText = (char*)szModName;
+				ListView_SetItem(hWndRLIF, &item);
+			}
+			break;
+		}
+
+		BASE_RELOC = (_IMAGE_BASE_RELOCATION*)((DWORD)BASE_RELOC + BASE_RELOC->SizeOfBlock);
+		cnt++;
+	}
+	
+}
+void InitListControlBoundImport(HWND hWnd) {
+	HWND hListCtrl = GetDlgItem(hWnd, IDC_LIST_BOUNDIMPORT);
+	BOUNDIMPORTHWND = hListCtrl;
+	SendMessage(hListCtrl, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
+	LVCOLUMN lvCol = { 0 };
+	lvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
+	lvCol.fmt = LVCFMT_LEFT;
+	lvCol.iSubItem = 0;
+	lvCol.cx = 150;
+	lvCol.pszText = (LPTSTR)TEXT("DLL名字");
+	ListView_InsertColumn(hListCtrl, 0, &lvCol);
+
+	lvCol.iSubItem = 1;
+	lvCol.cx = 100;
+	lvCol.pszText = (LPTSTR)TEXT("时间戳");
+	ListView_InsertColumn(hListCtrl, 1, &lvCol);
+
+	lvCol.iSubItem = 2;
+	lvCol.cx = 50;
+	lvCol.pszText = (LPTSTR)TEXT("MN");
+	ListView_InsertColumn(hListCtrl, 2, &lvCol);
+
+	lvCol.iSubItem = 3;
+	lvCol.cx = 50;
+	lvCol.pszText = (LPTSTR)TEXT("FR");
+	ListView_InsertColumn(hListCtrl, 3, &lvCol);
+}
+void ShowAllBoundImport(HWND hWndBI) {
+	_IMAGE_DOS_HEADER* DOS_HEADER = (_IMAGE_DOS_HEADER*)FileBuffer;
+	_IMAGE_NT_HEADERS* NT_HEADERS = (_IMAGE_NT_HEADERS*)((DWORD)FileBuffer + DOS_HEADER->e_lfanew);
+	_IMAGE_BOUND_IMPORT_DESCRIPTOR* BOUND_IMPORT_TABLE = (_IMAGE_BOUND_IMPORT_DESCRIPTOR*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, NT_HEADERS->OptionalHeader.DataDirectory[11].VirtualAddress));
+	DWORD COUNT = 0;
+	int cnt = 0,offset=0;
+	while ((BOUND_IMPORT_TABLE + offset)->TimeDateStamp || (BOUND_IMPORT_TABLE + offset)->OffsetModuleName || (BOUND_IMPORT_TABLE + offset)->NumberOfModuleForwarderRefs) {
+		COUNT = (BOUND_IMPORT_TABLE + offset)->NumberOfModuleForwarderRefs;
+		//printf("%x---%s\n", (BOUND_IMPORT_TABLE + cnt)->TimeDateStamp, (DWORD)BOUND_IMPORT_TABLE + (BOUND_IMPORT_TABLE + cnt)->OffsetModuleName);
+		LVITEMA item = {};
+		item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_STATE;
+		item.state = 0;
+		item.stateMask = 0;
+
+		TCHAR szModName[MAX_PATH] = {};
+		item.iItem = cnt;
+		item.iImage = cnt;
+
+		item.iSubItem = 0;
+		MultiByteToWideChar(CP_ACP, MB_COMPOSITE, (char*)BOUND_IMPORT_TABLE + (BOUND_IMPORT_TABLE + offset)->OffsetModuleName,strlen((char*)BOUND_IMPORT_TABLE + (BOUND_IMPORT_TABLE + offset)->OffsetModuleName)+1, szModName, MAX_PATH);
+		item.pszText = (char*)szModName;
+		ListView_InsertItem(hWndBI, &item);
+
+		item.iSubItem = 1;
+		wsprintf(szModName, L"%08X", (BOUND_IMPORT_TABLE + offset)->TimeDateStamp);
+		item.pszText = (char*)szModName;
+		ListView_SetItem(hWndBI, &item);
+
+		item.iSubItem = 2;
+		wsprintf(szModName, L"%04X", (BOUND_IMPORT_TABLE + offset)->OffsetModuleName);
+		item.pszText = (char*)szModName;
+		ListView_SetItem(hWndBI, &item);
+
+		item.iSubItem = 3;
+		wsprintf(szModName, L"%04X", (BOUND_IMPORT_TABLE + offset)->NumberOfModuleForwarderRefs);
+		item.pszText = (char*)szModName;
+		ListView_SetItem(hWndBI, &item);
+
+		while (COUNT--) {
+			offset++;
+			//printf("%x---%s\n", (BOUND_IMPORT_TABLE + cnt)->TimeDateStamp, (DWORD)BOUND_IMPORT_TABLE + (BOUND_IMPORT_TABLE + cnt)->OffsetModuleName);
+		}
+		offset++;
+		cnt++;
 	}
 }

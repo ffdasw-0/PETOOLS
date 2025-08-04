@@ -11,10 +11,9 @@
 #define IDD_DIALOG_DATADIR              113
 #define IDD_DIALOG_EXPORT_EX            115
 #define IDD_DIALOG_IMPORT_EX            117
-#define IDD_DIALOG_RESOURCE_EX          118
-#define IDD_DIALOG_RELOC_EX             119
+#define IDD_DIALOG_RELOC_EX             118
+#define IDD_DIALOG_RESOURCE_EX          119
 #define IDD_DIALOG_BOUND_EX             120
-#define IDD_DIALOG_IAT_EX               121
 #define IDC_BUTTON_QUIT                 1001
 #define IDC_BUTTON_OPEN                 1002
 #define IDC_BUTTON_ABOUT                1005
@@ -126,7 +125,6 @@
 #define EDIT_EXPORTTABLE_RVA            1067
 #define BUTTON_EXPORTTABLE_EX           1068
 #define BUTTON_IMPORTTABLE_EX           1069
-#define IDC_LIST1                       1069
 #define IDC_LIST_EXPORT                 1069
 #define BUTTON_RESOURCETABLE_EX         1070
 #define EDIT_CHARACTER_EXPORT           1070
@@ -134,7 +132,13 @@
 #define IDC_MA                          1071
 #define BUTTON_BOUNDIMPORT_EX           1072
 #define EDIT_MAJORVERSION_EXPORT        1072
-#define BUTTON_IAT_EX                   1073
+#define IDC_LIST_FUNCTION_IMPORTTABLE   1074
+#define IDC_LIST_DLL_IMPORTTABLE        1075
+#define IDC_TREE1                       1075
+#define IDC_TREE_RESOURCE               1075
+#define IDC_LIST_RELOC_BLOCK            1076
+#define IDC_LIST_RELOC_BLOCKINFO        1077
+#define IDC_LIST_BOUNDIMPORT            1077
 
 // Next default values for new objects
 // 
@@ -142,7 +146,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        127
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1073
+#define _APS_NEXT_CONTROL_VALUE         1078
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

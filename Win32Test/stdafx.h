@@ -81,6 +81,16 @@ void ShowExportTable(HWND hWndET);
 void ShowOptionalHeader(HWND hWndOH);
 void ShowDataDirectory(HWND hWndDD);
 void InitListControlExportTable(HWND hWnd);
+void InitListControlImportTable(HWND hWnd);
 void ShowAllExport(HWND hWndET);
+void ShowDllImport(HWND HWNDIT);
+void ShowAPIImport(HWND HWNDIT, DWORD OFT_RVA, DWORD FT_RVA);
+void ShowAllResource(HWND hWndRL);
+void ShowAllResourceDFS(HWND hWndRL, DWORD OFFSET,  DWORD Base, HTREEITEM fatherNode);
+void ShowAllRelocBlock(HWND hWndRL);
+void InitListControlRelocTable(HWND hWnd);
+void ShowAllRelocBlockINFO(HWND hWndRLIF, DWORD Index);
+void InitListControlBoundImport(HWND hWnd);
+void ShowAllBoundImport(HWND hWndBI);
 
 #endif
