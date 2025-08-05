@@ -93,4 +93,6 @@ void ShowAllRelocBlockINFO(HWND hWndRLIF, DWORD Index);
 void InitListControlBoundImport(HWND hWnd);
 void ShowAllBoundImport(HWND hWndBI);
 void ShowSelectItemResource(HWND HWNDSR, DWORD OFFSET);
+void ShowSelectDirResource(HWND HWNDSD, DWORD OFFSET);
+
 #endif

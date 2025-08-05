@@ -17,7 +17,8 @@ HWND TREE_RESOURCEHWND;
 TCHAR szFile[MAX_PATH];
 LPVOID FileBuffer;
 
-map<HTREEITEM, DWORD>info;
+map<HTREEITEM, DWORD>infoLast;
+map<HTREEITEM, DWORD>infoRoot;
 
 extern HINSTANCE hAppInstance;
 
@@ -1171,12 +1172,12 @@ BOOL CALLBACK Dlgproc_ResourceEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lPar
 				//以GetItemText()函数为例： 
 				//TreeView_GetItem(TREE_RESOURCEHWND, &pitem);
 				HTREEITEM node=TreeView_GetSelection(TREE_RESOURCEHWND);
-				if(info[node]){
+				if(infoLast[node]){
 					//DbgwPrintf(L"1\n");
-					ShowSelectItemResource(hWnd, info[node]);
+					ShowSelectItemResource(hWnd, infoLast[node]);
 				}
-				else {
-
+				if (infoRoot[node]) {
+					ShowSelectDirResource(hWnd, infoRoot[node]);
 				}
 				break;
 			}
@@ -1897,12 +1898,15 @@ void ShowAllResourceDFS(HWND hWndRL,DWORD OFFSET,  DWORD Base, HTREEITEM fatherN
 		}
 		node.item.pszText = szModName;
 		HTREEITEM htree=TreeView_InsertItem(hWndRL, &node);
+		if (!fatherNode) {
+			infoRoot.insert(pair<HTREEITEM, DWORD>(htree, (DWORD)Base + RVATOFOA(FileBuffer, (RESOURCE_DIR_E_START + i)->OffsetToDirectory)));
+		}
 		if ((RESOURCE_DIR_E_START + i)->DataIsDirectory) {
 			ShowAllResourceDFS(hWndRL, (DWORD)Base + RVATOFOA(FileBuffer, (RESOURCE_DIR_E_START + i)->OffsetToDirectory), Base, htree);
 		}
 		else {
 			_IMAGE_DATA_DIRECTORY* DATA_DIR = (_IMAGE_DATA_DIRECTORY*)((DWORD)Base + RVATOFOA(FileBuffer, (RESOURCE_DIR_E_START + i)->OffsetToDirectory));
-			info.insert(pair<HTREEITEM,DWORD>(htree,(DWORD)DATA_DIR));
+			infoLast.insert(pair<HTREEITEM,DWORD>(htree,(DWORD)DATA_DIR));
 			_IMAGE_RESOURCE_DATA_ENTRY* RESOURCE_DATA_E = (_IMAGE_RESOURCE_DATA_ENTRY*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, DATA_DIR->VirtualAddress));
 			//wprintf(L"      -->资源RVA:%08X     尺寸:%X\n", DATA_DIR->VirtualAddress, DATA_DIR->Size);
 
@@ -2164,4 +2168,13 @@ void ShowSelectItemResource(HWND HWNDSR, DWORD OFFSET) {
 
 	wsprintf(str, L"%08X", DATA_DIR->Size);
 	SetDlgItemText(HWNDSR, IDC_EDIT_RESOURCE_SELECTITEM_SIZE, str);
+}
+void ShowSelectDirResource(HWND HWNDSD, DWORD OFFSET) {
+	_IMAGE_RESOURCE_DIRECTORY* RESOURCE_DIR = (_IMAGE_RESOURCE_DIRECTORY*)OFFSET;
+	TCHAR str[20] = {};
+	wsprintf(str, L"%04X", RESOURCE_DIR->NumberOfNamedEntries);
+	SetDlgItemText(HWNDSD, IDC_EDIT_RESOURCE_SELECTDIR_NAME, str);
+
+	wsprintf(str, L"%04X", RESOURCE_DIR->NumberOfIdEntries);
+	SetDlgItemText(HWNDSD, IDC_EDIT_RESOURCE_SELECTDIR_ID, str);
 }
