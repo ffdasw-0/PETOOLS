@@ -17,6 +17,8 @@ HWND TREE_RESOURCEHWND;
 TCHAR szFile[MAX_PATH];
 LPVOID FileBuffer;
 
+map<HTREEITEM, DWORD>info;
+
 extern HINSTANCE hAppInstance;
 
 void __cdecl OutputDebugStringF(const char* format, ...) {
@@ -1157,6 +1159,34 @@ BOOL CALLBACK Dlgproc_ResourceEx(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lPar
 		}
 		break;
 	}
+	case WM_NOTIFY: {
+		switch (wParam) {
+		case IDC_TREE_RESOURCE: {
+			TCHAR str[20] = {};
+			char STR_NUM[20] = {};
+			NMTREEVIEWW* listview = (NMTREEVIEWW*)lParam;
+			switch (listview->hdr.code) {
+			case NM_CLICK: {
+				TVITEM pitem = {};
+				//以GetItemText()函数为例： 
+				//TreeView_GetItem(TREE_RESOURCEHWND, &pitem);
+				HTREEITEM node=TreeView_GetSelection(TREE_RESOURCEHWND);
+				if(info[node]){
+					//DbgwPrintf(L"1\n");
+					ShowSelectItemResource(hWnd, info[node]);
+				}
+				else {
+
+				}
+				break;
+			}
+			}
+
+			break;
+		}
+		}
+		break;
+	}
 	default: {
 		return FALSE;
 	}
@@ -1818,7 +1848,16 @@ void ShowAllExport(HWND hWndET) {
 void ShowAllResource(HWND hWndRL) {
 	_IMAGE_DOS_HEADER* DOS_HEADER = (_IMAGE_DOS_HEADER*)FileBuffer;
 	_IMAGE_NT_HEADERS* NT_HEADERS = (_IMAGE_NT_HEADERS*)((DWORD)FileBuffer + DOS_HEADER->e_lfanew);
+	
 	DWORD Base = (DWORD)FileBuffer + RVATOFOA(FileBuffer, NT_HEADERS->OptionalHeader.DataDirectory[2].VirtualAddress);
+	_IMAGE_RESOURCE_DIRECTORY* RESOURCE_DIR = (_IMAGE_RESOURCE_DIRECTORY*)Base;
+	TCHAR str[20] = {};
+	wsprintf(str, L"%04X", RESOURCE_DIR->NumberOfNamedEntries);
+	SetDlgItemText(hWndRL, IDC_EDIT_RESOURCE_ROOT_NAME, str);
+	
+	wsprintf(str, L"%04X", RESOURCE_DIR->NumberOfIdEntries);
+	SetDlgItemText(hWndRL, IDC_EDIT_RESOURCE_ROOT_ID, str);
+
 	HWND hListCtrl = GetDlgItem(hWndRL, IDC_TREE_RESOURCE);
 	TREE_RESOURCEHWND = hListCtrl;
 	ShowAllResourceDFS(hListCtrl, Base, Base, NULL);
@@ -1855,7 +1894,6 @@ void ShowAllResourceDFS(HWND hWndRL,DWORD OFFSET,  DWORD Base, HTREEITEM fatherN
 		}
 		else {
 			wsprintf(szModName,L"%d", (RESOURCE_DIR_E_START + i)->Id);
-			
 		}
 		node.item.pszText = szModName;
 		HTREEITEM htree=TreeView_InsertItem(hWndRL, &node);
@@ -1864,8 +1902,10 @@ void ShowAllResourceDFS(HWND hWndRL,DWORD OFFSET,  DWORD Base, HTREEITEM fatherN
 		}
 		else {
 			_IMAGE_DATA_DIRECTORY* DATA_DIR = (_IMAGE_DATA_DIRECTORY*)((DWORD)Base + RVATOFOA(FileBuffer, (RESOURCE_DIR_E_START + i)->OffsetToDirectory));
+			info.insert(pair<HTREEITEM,DWORD>(htree,(DWORD)DATA_DIR));
 			_IMAGE_RESOURCE_DATA_ENTRY* RESOURCE_DATA_E = (_IMAGE_RESOURCE_DATA_ENTRY*)((DWORD)FileBuffer + RVATOFOA(FileBuffer, DATA_DIR->VirtualAddress));
-			wprintf(L"      -->资源RVA:%08X     尺寸:%X\n", DATA_DIR->VirtualAddress, DATA_DIR->Size);
+			//wprintf(L"      -->资源RVA:%08X     尺寸:%X\n", DATA_DIR->VirtualAddress, DATA_DIR->Size);
+
 			return;
 		}
 	}
@@ -2112,4 +2152,16 @@ void ShowAllBoundImport(HWND hWndBI) {
 		offset++;
 		cnt++;
 	}
+}
+void ShowSelectItemResource(HWND HWNDSR, DWORD OFFSET) {
+	_IMAGE_DATA_DIRECTORY* DATA_DIR = (_IMAGE_DATA_DIRECTORY*)OFFSET;
+	TCHAR str[20] = {};
+	wsprintf(str, L"%08X", DATA_DIR->VirtualAddress);
+	SetDlgItemText(HWNDSR, IDC_EDIT_RESOURCE_SELECTITEM_RVA, str);
+
+	wsprintf(str, L"%08X", RVATOFOA(FileBuffer,DATA_DIR->VirtualAddress));
+	SetDlgItemText(HWNDSR, IDC_EDIT_RESOURCE_SELECTITEM_OFFSET, str);
+
+	wsprintf(str, L"%08X", DATA_DIR->Size);
+	SetDlgItemText(HWNDSR, IDC_EDIT_RESOURCE_SELECTITEM_SIZE, str);
 }
